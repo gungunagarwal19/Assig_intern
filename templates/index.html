@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Create AI Agent</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="container">
+    <h1>🎙️ AI Agent Creator</h1>
+
+    <form id="agentForm">
+      <label for="provider">Provider:</label>
+      <select id="provider">
+        <option value="vapi">Vapi</option>
+        <option value="retell">RetellAI</option>
+      </select>
+
+      <label for="name">Agent Name:</label>
+      <input type="text" id="name" placeholder="Enter agent name" required>
+
+      <label for="voice">Voice:</label>
+      <input type="text" id="voice" placeholder="e.g. nova for Vapi, voice_id for RetellAI" required>
+
+      <div id="retellFields" style="display: none;">
+        <label for="model">LLM Model:</label>
+        <input type="text" id="model" placeholder="e.g. gpt-4" value="gpt-4">
+      </div>
+
+      
+
+      <button type="submit">Create Agent</button>
+    </form>
+
+    <div class="result">
+      <h2>Response</h2>
+      <pre id="responseBox">Waiting for request...</pre>
+    </div>
+  </div>
+
+  <script>
+    // Show/hide RetellAI specific fields based on provider selection
+    document.getElementById("provider").addEventListener("change", function() {
+      const retellFields = document.getElementById("retellFields");
+      if (this.value === "retell") {
+        retellFields.style.display = "block";
+      } else {
+        retellFields.style.display = "none";
+      }
+    });
+
+    document.getElementById("agentForm").addEventListener("submit", async function (e) {
+      e.preventDefault();
+  
+      const provider = document.getElementById("provider").value;
+      
+      const data = {
+        provider: provider,
+        name: document.getElementById("name").value,
+        voice: document.getElementById("voice").value,
+        // instructions: document.getElementById("instructions").value
+      };
+      
+      // Add RetellAI specific fields if that provider is selected
+      if (provider === "retell") {
+        data.model = document.getElementById("model").value;
+      }
+  
+      try {
+        const res = await fetch("/create-agent", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(data)
+        });
+  
+        const result = await res.text(); // plain text response from Flask
+        document.getElementById("responseBox").textContent = result;
+      } catch (err) {
+        document.getElementById("responseBox").textContent = "Error: " + err.message;
+      }
+    });
+  </script>
+  
+</body>
+</html>
